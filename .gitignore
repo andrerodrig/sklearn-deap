@@ -36,6 +36,7 @@ pip-delete-this-directory.txt
 # Unit test / coverage reports
 htmlcov/
 .tox/
+.pytest_cache/
 .coverage
 .coverage.*
 .cache
@@ -59,3 +60,15 @@ target/
 # Jupyter Stuff
 notebooks/.ipynb_checkpoints/
 .ipynb_checkpoints/
+
+# Virtual Environment
+.venv/
+
+# Poetry files
+poetry.lock
+
+# Profiling dir
+prof/
+
+# Vscode config
+.vscode/

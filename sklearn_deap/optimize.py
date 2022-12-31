@@ -1,12 +1,9 @@
 import numpy as np
 from deap import base, creator, tools, algorithms
 from sklearn.model_selection._search import ParameterGrid
-from evolutionary_search.cv import (
-    _get_param_types_maxint,
-    _initIndividual,
-    _cxIndividual,
-    _mutIndividual,
-    _individual_to_params,
+from sklearn_deap.cv import _get_param_types_maxint
+from sklearn_deap.individual.individual import (
+    init_individual, cx_individuals, mut_individual, individual_to_params
 )
 import warnings
 import os
@@ -15,7 +12,7 @@ import os
 def _evalFunction(
     func, individual, name_values, verbose=0, error_score="raise", args={}
 ):
-    parameters = _individual_to_params(individual, name_values)
+    parameters = individual_to_params(individual, name_values)
     score = 0
 
     _parameters = dict(parameters)
@@ -121,7 +118,7 @@ def maximize(
     if verbose:
         print("Types %s and maxint %s detected" % (gene_type, maxints))
 
-    toolbox.register("individual", _initIndividual, creator.Individual, maxints=maxints)
+    toolbox.register("individual", init_individual, creator.Individual, maxints=maxints)
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
     toolbox.register(
@@ -135,10 +132,10 @@ def maximize(
     )
 
     toolbox.register(
-        "mate", _cxIndividual, indpb=gene_crossover_prob, gene_type=gene_type
+        "mate", cx_individuals, indpb=gene_crossover_prob, gene_type=gene_type
     )
 
-    toolbox.register("mutate", _mutIndividual, indpb=gene_mutation_prob, up=maxints)
+    toolbox.register("mutate", mut_individual, indpb=gene_mutation_prob, up=maxints)
     toolbox.register("select", tools.selTournament, tournsize=tournament_size)
 
     # Tools
@@ -175,7 +172,7 @@ def maximize(
     )
 
     current_best_score_ = hof[0].fitness.values[0]
-    current_best_params_ = _individual_to_params(hof[0], name_values)
+    current_best_params_ = individual_to_params(hof[0], name_values)
 
     # Generate score_cache with real parameters
     _, individuals, each_scores = zip(
@@ -190,7 +187,7 @@ def maximize(
     }
     score_results = tuple(
         [
-            (_individual_to_params(indiv, name_values), score)
+            (individual_to_params(indiv, name_values), score)
             for indiv, score in unique_individuals.values()
         ]
     )

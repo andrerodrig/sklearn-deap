@@ -1,6 +1,5 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 from setuptools import setup, find_packages
+
 
 setup(
     name="sklearn-deap",
@@ -30,4 +29,9 @@ setup(
         "deap>=1.0.2",
         "scikit-learn>=0.24.0",
     ],
+    extras_require={
+        'dev': {
+            'pytest',
+        }
+    },
 )

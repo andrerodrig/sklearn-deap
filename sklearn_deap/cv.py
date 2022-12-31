@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
 from __future__ import division
 import os
 import warnings
 
 import numpy as np
-import random
 from deap import base, creator, tools, algorithms
 from collections import defaultdict
 from sklearn.base import clone, is_classifier
@@ -12,7 +10,10 @@ from sklearn.model_selection._validation import _fit_and_score
 from sklearn.model_selection._search import BaseSearchCV, check_cv
 from sklearn.model_selection._search import ParameterGrid
 from sklearn.metrics import check_scoring
-from sklearn.utils.validation import _num_samples, indexable
+from sklearn.utils.validation import indexable
+from sklearn_deap.individual.individual import (
+    init_individual, mut_individual, cx_individuals, individual_to_params
+)
 
 
 def enum(**enums):
@@ -45,44 +46,6 @@ def _get_param_types_maxint(params):
     return name_values, types, maxints
 
 
-def _initIndividual(pcls, maxints):
-    part = pcls(random.randint(0, maxint) for maxint in maxints)
-    return part
-
-
-def _mutIndividual(individual, up, indpb, gene_type=None):
-    for i, up, rn in zip(range(len(up)), up, [random.random() for _ in range(len(up))]):
-        if rn < indpb:
-            individual[i] = random.randint(0, up)
-    return (individual,)
-
-
-def _cxIndividual(ind1, ind2, indpb, gene_type):
-    for i, gt, rn in zip(
-        range(len(ind1)), gene_type, [random.random() for _ in range(len(ind1))]
-    ):
-        if rn > indpb:
-            continue
-        if gt is param_types.Categorical:
-            ind1[i], ind2[i] = ind2[i], ind1[i]
-        else:
-            # Case when parameters are numerical
-            if ind1[i] <= ind2[i]:
-                ind1[i] = random.randint(ind1[i], ind2[i])
-                ind2[i] = random.randint(ind1[i], ind2[i])
-            else:
-                ind1[i] = random.randint(ind2[i], ind1[i])
-                ind2[i] = random.randint(ind2[i], ind1[i])
-
-    return ind1, ind2
-
-
-def _individual_to_params(individual, name_values):
-    return dict(
-        (name, values[gene]) for gene, (name, values) in zip(individual, name_values)
-    )
-
-
 def _evalFunction(
     individual,
     name_values,
@@ -105,7 +68,7 @@ def _evalFunction(
     Remember that dicts created inside function definitions are presistent between calls,
     So unless it is replaced this function will be memoized each call automatically."""
 
-    parameters = _individual_to_params(individual, name_values)
+    parameters = individual_to_params(individual, name_values)
     score = 0
     n_test = 0
 
@@ -130,9 +93,10 @@ def _evalFunction(
                 error_score=error_score,
             )["test_scores"]
 
+            test_length = test.shape[0]
             if iid:
-                score += _score * len(test)
-                n_test += len(test)
+                score += _score * test_length
+                n_test += test_length
             else:
                 score += _score
                 n_test += 1
@@ -392,7 +356,7 @@ class EvolutionaryAlgorithmSearchCV(BaseSearchCV):
                 out["param_index"] += [p] * len(idxs)
                 out["index"] += idxs
                 out["params"] += [
-                    _individual_to_params(indiv, name_values) for indiv in individuals
+                    individual_to_params(indiv, name_values) for indiv in individuals
                 ]
                 out["mean_test_score"] += [np.nanmean(scores) for scores in each_scores]
                 out["std_test_score"] += [np.nanstd(scores) for scores in each_scores]
@@ -429,7 +393,7 @@ class EvolutionaryAlgorithmSearchCV(BaseSearchCV):
     def _fit(self, X, y, parameter_dict):
         self._cv_results = None  # To indicate to the property the need to update
         self.scorer_ = check_scoring(self.estimator, scoring=self.scoring)
-        n_samples = _num_samples(X)
+        n_samples, _ = X.shape
         X, y = indexable(X, y)
 
         if y is not None:
@@ -449,7 +413,7 @@ class EvolutionaryAlgorithmSearchCV(BaseSearchCV):
             print("Types %s and maxint %s detected" % (self.gene_type, maxints))
 
         toolbox.register(
-            "individual", _initIndividual, creator.Individual, maxints=maxints
+            "individual", init_individual, creator.Individual, maxints=maxints
         )
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
@@ -503,13 +467,13 @@ class EvolutionaryAlgorithmSearchCV(BaseSearchCV):
 
         toolbox.register(
             "mate",
-            _cxIndividual,
+            cx_individuals,
             indpb=self.gene_crossover_prob,
             gene_type=self.gene_type,
         )
 
         toolbox.register(
-            "mutate", _mutIndividual, indpb=self.gene_mutation_prob, up=maxints
+            "mutate", mut_individual, indpb=self.gene_mutation_prob, up=maxints
         )
         toolbox.register("select", tools.selTournament, tournsize=self.tournament_size)
 
@@ -551,7 +515,7 @@ class EvolutionaryAlgorithmSearchCV(BaseSearchCV):
         self.all_history_.append(hist)
         self.all_logbooks_.append(logbook)
         current_best_score_ = hof[0].fitness.values[0]
-        current_best_params_ = _individual_to_params(hof[0], name_values)
+        current_best_params_ = individual_to_params(hof[0], name_values)
         if self.verbose:
             print(
                 "Best individual is: %s\nwith fitness: %s"
