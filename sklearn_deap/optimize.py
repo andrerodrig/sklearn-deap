@@ -172,7 +172,7 @@ def maximize(
     )
 
     current_best_score_ = hof[0].fitness.values[0]
-    current_best_params_ = _individual_to_params(hof[0], name_values)
+    current_best_params_ = individual_to_params(hof[0], name_values)
 
     # Generate score_cache with real parameters
     _, individuals, each_scores = zip(
@@ -187,7 +187,7 @@ def maximize(
     }
     score_results = tuple(
         [
-            (_individual_to_params(indiv, name_values), score)
+            (individual_to_params(indiv, name_values), score)
             for indiv, score in unique_individuals.values()
         ]
     )
