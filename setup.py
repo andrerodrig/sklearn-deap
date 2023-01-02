@@ -1,4 +1,6 @@
 from setuptools import setup, find_packages
+from Cython.Build import cythonize
+import numpy as np
 
 
 setup(
@@ -34,4 +36,11 @@ setup(
             'pytest',
         }
     },
+    ext_modules=cythonize(
+        [
+            'sklearn_deap/individual/*.pyx',
+            'sklearn_deap/individual/*.pxd',
+        ]
+    ),
+    include_dirs=[np.get_include()]
 )

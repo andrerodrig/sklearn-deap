@@ -4,6 +4,7 @@ __pycache__/
 
 # C extensions
 *.so
+*.c
 
 # Distribution / packaging
 .Python
@@ -69,6 +70,7 @@ poetry.lock
 
 # Profiling dir
 prof/
+*.prof
 
 # Vscode config
 .vscode/

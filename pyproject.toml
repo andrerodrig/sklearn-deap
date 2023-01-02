@@ -16,11 +16,12 @@ scikit-learn = "^1.2.0"
 pytest-profiling = "^1.7.0"
 cython = "^0.29.32"
 pandas = "^1.5.2"
+setuptools = "^65.6.3"
 
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.0"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core", "cython", "setuptools","wheel"]
 build-backend = "poetry.core.masonry.api"
