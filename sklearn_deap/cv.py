@@ -11,7 +11,7 @@ from sklearn.model_selection._search import BaseSearchCV, check_cv
 from sklearn.model_selection._search import ParameterGrid
 from sklearn.metrics import check_scoring
 from sklearn.utils.validation import indexable
-from sklearn_deap.individual.individual import (
+from sklearn_deap.individual.individual_cy import (
     init_individual, individual_to_params, mut_individual, cx_individuals
 )
 

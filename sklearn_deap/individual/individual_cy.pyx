@@ -1,7 +1,7 @@
 import numpy as np
 
 from typing import List, Type, Dict, Tuple
-from sklearn_deap.individual.individual_ import iterate_cx, iterate_mut
+from sklearn_deap.individual.lib_individual cimport get_iterate_cx, get_iterate_mut
 
 
 def init_individual(pcls: Type, maxints: List[int]) -> List[int]:
@@ -10,12 +10,12 @@ def init_individual(pcls: Type, maxints: List[int]) -> List[int]:
 
 
 def mut_individual(individual, up: List[int], indpb: float) -> Tuple[List[int]]:
-    individual[:] = iterate_mut(list(individual), up, indpb)
+    individual[:] = get_iterate_mut(list(individual), up, indpb)
     return (individual,)
 
 
 def cx_individuals(ind1: List[int], ind2: List[int], indpb: float, gene_type: List[int]) -> Tuple[list]:
-    ind1[:], ind2[:] = iterate_cx(list(ind1), list(ind2), indpb, gene_type)
+    ind1[:], ind2[:] = get_iterate_cx(list(ind1), list(ind2), indpb, gene_type)
     return ind1, ind2
 
 
