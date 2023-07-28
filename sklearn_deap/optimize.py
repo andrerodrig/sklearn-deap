@@ -1,12 +1,13 @@
+import os
+import warnings
 import numpy as np
+
 from deap import base, creator, tools, algorithms
 from sklearn.model_selection._search import ParameterGrid
 from sklearn_deap.cv import _get_param_types_maxint
-from sklearn_deap.individual.individual import (
-    init_individual, cx_individuals, mut_individual, individual_to_params
+from sklearn_deap.individual.individual_cy import (
+    init_individual, individual_to_params, cx_individuals, mut_individual
 )
-import warnings
-import os
 
 
 def _evalFunction(

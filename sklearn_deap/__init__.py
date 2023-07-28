@@ -1,2 +1,2 @@
-from .cv import *
+from .cv import EvolutionaryAlgorithmSearchCV
 from .optimize import maximize, compile
